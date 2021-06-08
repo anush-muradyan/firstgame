@@ -9,8 +9,9 @@ public class BallMove : MonoBehaviour
     public Vector3 velocity;
     public Transform transformBall;
     public Transform line;
+    public Transform line2;
     public Camera camera;
-    [Range(-1f,1f)]public float velocityMult;
+    [Range(-1f, 1f)] public float velocityMult;
     private float boundXMin;
     private float boundXMax;
 
@@ -25,7 +26,7 @@ public class BallMove : MonoBehaviour
         boundXMin = -boundXMax;
         boundYMax = bound.y;
         boundYMin = -boundYMax;
-        
+
         velocity = Random.insideUnitCircle;
         Debug.Log($"{boundXMin} : {boundXMax}, {boundYMin} : {boundYMax}");
     }
@@ -36,6 +37,7 @@ public class BallMove : MonoBehaviour
         var scale = transformBall.localScale;
         if (pos.x > boundXMax - scale.x || pos.x < boundXMin + scale.x)
         {
+            // gameObject.SetActive(false);
             velocity.x *= -1f;
         }
 
@@ -44,17 +46,32 @@ public class BallMove : MonoBehaviour
             velocity.y *= -1f;
         }
 
+        if (Input.GetKeyDown((KeyCode.S)))
+        {
+            line.position = line.TransformDirection(line.position.x, line.position.y - 1, 0);
+        }
+        if (Input.GetKeyDown((KeyCode.W)))
+        {
+            line.position = line.TransformDirection(line.position.x, line.position.y + 1, 0);
+        }
+        
         transformBall.position += velocity * velocityMult;
 
         var angle = -Input.GetAxisRaw("Horizontal") * Time.deltaTime * 30f;
-        line.Rotate(Vector3.forward, angle);
+        transformBall.rotation=Quaternion.Euler(Vector3.forward*Mathf.Atan(velocity.y/velocity.x)*Mathf.Rad2Deg);
 
-        Debug.DrawLine(line.position, line.position + line.right * 5f,Color.red);
+        Debug.DrawLine(line.position, line.position + line.right * 5f, Color.red);
+        Debug.DrawLine(line2.position, line2.position - line2.right * 5f, Color.blue);
+        
     }
 
     private void OnTriggerEnter2D(Collider2D t)
     {
+        Debug.LogError(t);
         var norm = t.transform.right;
-        velocity = norm;
+        // velocity = transform.position.normalized.x > 0 ? -norm : norm;
+        velocity += norm;
+        velocity.Normalize();
+        
     }
 }
